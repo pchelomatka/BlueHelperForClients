@@ -8,19 +8,23 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Map<String, BeaconInfo> beaconInfos = new HashMap<>();
     private BeaconInfo nearestBeaconInfo;
     private ArrayList<Point> points = new ArrayList<>();
+    private Point tempPoint = null;
+    private boolean addPointButtonEnabled = true;
 
 
     @Override
@@ -64,10 +70,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
         startPoint = findViewById(R.id.textView);
         endPoint = findViewById(R.id.textView2);
+        createRoute = findViewById(R.id.button);
+        createRoute.setOnClickListener(this);
         beaconListView = findViewById(R.id.beaconListView);
         discoveryCheckBox = findViewById(R.id.discoveryCheckBox);
-        currentBeaconLabel.setVisibility(View.INVISIBLE);
         currentBeaconLabel = findViewById(R.id.currentBeaconLabel);
+        currentBeaconLabel.setVisibility(View.INVISIBLE);
         beaconListView.setAdapter(beaconListAdapter);
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -95,6 +103,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     stopDiscovery();
                 }
+            }
+        });
+
+        beaconListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final BeaconInfo beaconInfo = (BeaconInfo) beaconListView.getItemAtPosition(position);
+
+//                Button addButton = findViewById(R.id.addButton);
+//                EditText pointName = findViewById(R.id.pointNameTextView);
+//
+//                if (MainActivity.this.addPointButtonEnabled) {
+//                    if (MainActivity.this.tempPoint == null) {
+//                        MainActivity.this.tempPoint = new Point(pointName.getText().toString());
+////						MainActivity.this.tempPoint = new Point("Метка");
+//                    }
+//                    if (MainActivity.this.tempPoint.getBeaconsCount() == 2) {
+//                        MainActivity.this.tempPoint.addBeacon(beaconInfo.address, Integer.toString(beaconInfo.getAvg()));
+//                        addButton.setEnabled(true);
+//                        addButton.setText("+");
+//                        pointName.setText("");
+//
+//                        MainActivity.this.points.add(MainActivity.this.tempPoint);
+//                        MainActivity.this.tempPoint = null;
+//
+//                    } else {
+//                        addButton.setText(Integer.toString(3 - MainActivity.this.tempPoint.getBeaconsCount()));
+//                        MainActivity.this.tempPoint.addBeacon(beaconInfo.address, Integer.toString(beaconInfo.getAvg()));
+//                    }
+//                    return;
+//                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Rename beacon\n" + beaconInfo.address);
+                final EditText editText = new EditText(MainActivity.this);
+                editText.setText(beaconInfo.title);
+                builder.setView(editText);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String text = editText.getText().toString();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        if (text.length() > 0) {
+                            beaconInfo.title = text;
+                            editor.putString(beaconInfo.address, text);
+                        } else {
+                            beaconInfo.title = null;
+                            editor.remove(beaconInfo.address);
+                        }
+                        editor.apply();
+                        beaconListAdapter.notifyDataSetChanged();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.show();
             }
         });
 
