@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BlueHelperForClients</string>
+    <string name="textviewstartpoint">Начальная точка</string>
+    <string name="textviewendpoint">Конечная точка</string>
+    <string name="button">Построить маршрут</string>
+    <string name="currentBeaconLabel">TextView</string>
+    <string name="discoveryCheckBox">Начать поиск</string>
+</resources>
