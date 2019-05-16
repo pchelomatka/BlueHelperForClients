@@ -17,6 +17,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -29,6 +30,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bluehelperforclients.interfaces.API;
+import com.example.bluehelperforclients.response_body.ResponseGetPoints;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -60,6 +70,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ArrayList<Point> points = new ArrayList<>();
     private Point tempPoint = null;
     private boolean addPointButtonEnabled = true;
+    public static Map<String, String> pointsForCall = new HashMap<String, String>();
+    String building_id = "4"; //да-да хардкод
+    public static String baseUrl = "http://t999640p.beget.tech";
+    public static String textconst = "";
 
 
     @Override
@@ -196,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
         }, 1000, 1000);
+        points(building_id);
 
     }
 
@@ -293,6 +308,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
 
                 String checked = MainActivity.this.checkPoint(beaconInfos);
+                String text = textconst;
+
+
+                for (Map.Entry<String, String> item : pointsForCall.entrySet()) {
+                    if (checked.equals(item.getKey())) {
+                        text = item.getValue();
+                        System.out.println(text);
+                    }
+                }
+
 
                 if (!checked.isEmpty()) {
                     tts.speak(checked, TextToSpeech.QUEUE_FLUSH, null);
@@ -316,11 +341,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if ((nearestBeaconInfo == null) || ((nearestBeaconInfo.rssi <= beaconInfo.rssi)) ||
                             (nearestBeaconInfo == beaconInfo)) {
                         if ((nearestBeaconInfo != beaconInfo) && (beaconInfo.title != null) && canUseTTS) {
-                            tts.speak(beaconInfo.title, TextToSpeech.QUEUE_FLUSH, null);
+                            for (Map.Entry<String, String> item : pointsForCall.entrySet()) {
+                                if (beaconInfo.title.equals(item.getKey())) {
+                                    text = item.getValue();
+                                    System.out.println(text);
+                                }
+                            }
+                            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
                         }
                         nearestBeaconInfo = beaconInfo;
-                        currentBeaconLabel.setText((beaconInfo.title != null) ?
-                                beaconInfo.title : beaconInfo.address);
+                        //currentBeaconLabel.setText((beaconInfo.title != null) ? beaconInfo.title : beaconInfo.address);
+                        currentBeaconLabel.setText(text);
+                        textconst=text;
                         currentBeaconLabel.setVisibility(View.VISIBLE);
                     }
                 } else if (nearestBeaconInfo == beaconInfo) {
@@ -465,5 +497,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static class MainListHolder {
         private TextView line1;
         private TextView line2;
+    }
+
+    private void points(String building_id) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MainActivity.baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        API api = retrofit.create(API.class);
+        api.points(building_id);
+
+        Call<ResponseGetPoints> call = api.points(building_id);
+
+        call.enqueue(new Callback<ResponseGetPoints>() {
+            @Override
+            public void onResponse(Call<ResponseGetPoints> call, Response<ResponseGetPoints> response) {
+                if (response.isSuccessful()) {
+                    for (int i = 0; i < response.body().getResponse().size(); i++) {
+                        pointsForCall.put(response.body().getResponse().get(i).getDeviceId(), response.body().getResponse().get(i).getTitle());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseGetPoints> call, Throwable t) {
+
+            }
+        });
     }
 }
