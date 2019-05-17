@@ -1,6 +1,7 @@
 package com.example.bluehelperforclients.interfaces;
 
 import com.example.bluehelperforclients.response_body.ResponseGetPoints;
+import com.example.bluehelperforclients.response_body.ResponseGetVectors;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -14,4 +15,8 @@ public interface API {
     @Headers({"User-Agent: " + userAgent})
     @GET("api/points")
     Call<ResponseGetPoints> points(@Query("building_id") String building_id);
+
+    @Headers({"User-Agent: " + userAgent})
+    @GET("api/vectors")
+    Call<ResponseGetVectors> vectors(@Query("building_id") String building_id);
 }

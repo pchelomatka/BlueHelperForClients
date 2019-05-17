@@ -30,8 +30,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bluehelperforclients.DTO.Vector;
 import com.example.bluehelperforclients.interfaces.API;
 import com.example.bluehelperforclients.response_body.ResponseGetPoints;
+import com.example.bluehelperforclients.response_body.ResponseGetVectors;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,8 +55,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final int REQUEST_ENABLE_BT = 1;
     private final int REQUEST_LOCATION_PERMISSION = 2;
 
-    private TextView startPoint;
-    private TextView endPoint;
+    EditText editTextSP;
+    EditText editTextEP;
     private TextView currentBeaconLabel;
     private ListView beaconListView;
     private Button createRoute;
@@ -71,9 +73,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Point tempPoint = null;
     private boolean addPointButtonEnabled = true;
     public static Map<String, String> pointsForCall = new HashMap<String, String>();
+    public static Map<String, String> pointsForCallForRoute = new HashMap<String, String>();
+    public static ArrayList<Vector> vectors = new ArrayList<Vector>();
     String building_id = "4"; //да-да хардкод
     public static String baseUrl = "http://t999640p.beget.tech";
     public static String textconst = "";
+    public static String pointForRoute = "";
 
 
     @Override
@@ -82,8 +87,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        startPoint = findViewById(R.id.textView);
-        endPoint = findViewById(R.id.textView2);
+        editTextSP = findViewById(R.id.editText);
+        editTextEP = findViewById(R.id.editText3);
         createRoute = findViewById(R.id.button);
         createRoute.setOnClickListener(this);
         beaconListView = findViewById(R.id.beaconListView);
@@ -126,31 +131,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final BeaconInfo beaconInfo = (BeaconInfo) beaconListView.getItemAtPosition(position);
-
-//                Button addButton = findViewById(R.id.addButton);
-//                EditText pointName = findViewById(R.id.pointNameTextView);
-//
-//                if (MainActivity.this.addPointButtonEnabled) {
-//                    if (MainActivity.this.tempPoint == null) {
-//                        MainActivity.this.tempPoint = new Point(pointName.getText().toString());
-////						MainActivity.this.tempPoint = new Point("Метка");
-//                    }
-//                    if (MainActivity.this.tempPoint.getBeaconsCount() == 2) {
-//                        MainActivity.this.tempPoint.addBeacon(beaconInfo.address, Integer.toString(beaconInfo.getAvg()));
-//                        addButton.setEnabled(true);
-//                        addButton.setText("+");
-//                        pointName.setText("");
-//
-//                        MainActivity.this.points.add(MainActivity.this.tempPoint);
-//                        MainActivity.this.tempPoint = null;
-//
-//                    } else {
-//                        addButton.setText(Integer.toString(3 - MainActivity.this.tempPoint.getBeaconsCount()));
-//                        MainActivity.this.tempPoint.addBeacon(beaconInfo.address, Integer.toString(beaconInfo.getAvg()));
-//                    }
-//                    return;
-//                }
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Rename beacon\n" + beaconInfo.address);
                 final EditText editText = new EditText(MainActivity.this);
@@ -211,12 +191,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }, 1000, 1000);
         points(building_id);
+        pointsForRoute(building_id);
+        vectors(building_id);
 
     }
 
     @Override
     public void onClick(View v) {
+//        String startPoint = editTextSP.getText().toString().trim();
+//        String endPoint = editTextEP.getText().toString().trim();
+//
+//        if (!startPoint.isEmpty() & !endPoint.isEmpty()) {
+//            createRoute(startPoint, endPoint);
+//        } else {
+//            String error = "Данные не введены или введены некоректно";
+//            Toast.makeText(getApplicationContext(), "Данные не введены", Toast.LENGTH_LONG).show();
+//            tts.speak(error, TextToSpeech.QUEUE_FLUSH, null);
+//        }
+//        createRoute(startPoint, endPoint);
+    }
 
+
+    public void createRoute(String startPoint, String endPoint) {
+//        String valueOfPointStart = "";
+//        String valueOfPointEnd = "";
+//        String direction = "";
+//        for (Map.Entry<String, String> item : pointsForCallForRoute.entrySet()) {
+//            if (startPoint.equals(item.getKey())) {
+//                valueOfPointStart = item.getValue();
+//            }
+//        }
+//        for (Map.Entry<String, String> item : pointsForCallForRoute.entrySet()) {
+//            if (endPoint.equals(item.getKey())) {
+//                valueOfPointEnd = item.getValue();
+//            }
+//        }
+//        for (int i = 0; i < vectors.size(); i++) {
+//            if (vectors.get(i).getStartPoint().equals(valueOfPointStart) & endPoint.equals(valueOfPointEnd)) {
+//                if (Integer.parseInt(vectors.get(i).getDirection()) == 0) {
+//                    direction = "Идете прямо";
+//                    tts.speak(direction, TextToSpeech.QUEUE_FLUSH, null);
+//                } else if (Integer.parseInt(vectors.get(i).getDirection()) == 90) {
+//                    direction = "Поверните направо";
+//                    tts.speak(direction, TextToSpeech.QUEUE_FLUSH, null);
+//                } else if (Integer.parseInt(vectors.get(i).getDirection()) == 180) {
+//                    direction = "Идите прямо";
+//                    tts.speak(direction, TextToSpeech.QUEUE_FLUSH, null);
+//                } else if (Integer.parseInt(vectors.get(i).getDirection()) == 270) {
+//                    direction = "Поверните налево";
+//                    tts.speak(direction, TextToSpeech.QUEUE_FLUSH, null);
+//                }
+//            }
+//        }
+//        if (pointForRoute.equals(endPoint)) {
+//            String exit="Вы пришли";
+//            tts.speak(exit, TextToSpeech.QUEUE_FLUSH, null);
+//        }
     }
 
     @Override
@@ -351,8 +381,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         nearestBeaconInfo = beaconInfo;
                         //currentBeaconLabel.setText((beaconInfo.title != null) ? beaconInfo.title : beaconInfo.address);
+                        //pointForRoute = beaconInfo.title;
                         currentBeaconLabel.setText(text);
-                        textconst=text;
+                        textconst = text;
                         currentBeaconLabel.setVisibility(View.VISIBLE);
                     }
                 } else if (nearestBeaconInfo == beaconInfo) {
@@ -522,6 +553,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onFailure(Call<ResponseGetPoints> call, Throwable t) {
+
+            }
+        });
+    }
+
+    private void pointsForRoute(String building_id) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MainActivity.baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        API api = retrofit.create(API.class);
+        api.points(building_id);
+
+        Call<ResponseGetPoints> call = api.points(building_id);
+
+        call.enqueue(new Callback<ResponseGetPoints>() {
+            @Override
+            public void onResponse(Call<ResponseGetPoints> call, Response<ResponseGetPoints> response) {
+                if (response.isSuccessful()) {
+                    for (int i = 0; i < response.body().getResponse().size(); i++) {
+                        pointsForCallForRoute.put(response.body().getResponse().get(i).getTitle(), response.body().getResponse().get(i).getId());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseGetPoints> call, Throwable t) {
+
+            }
+        });
+    }
+
+    private void vectors(String building_id) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MainActivity.baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        API api = retrofit.create(API.class);
+        api.vectors(building_id);
+
+        Call<ResponseGetVectors> call = api.vectors(building_id);
+
+        call.enqueue(new Callback<ResponseGetVectors>() {
+            @Override
+            public void onResponse(Call<ResponseGetVectors> call, Response<ResponseGetVectors> response) {
+                if (response.isSuccessful()) {
+                    for (int i = 0; i < response.body().getResponse().size(); i++) {
+                        Vector vector = new Vector(response.body().getResponse().get(i).getId(),
+                                response.body().getResponse().get(i).getStartPoint(),
+                                response.body().getResponse().get(i).getEndPoint(),
+                                response.body().getResponse().get(i).getDistance(),
+                                response.body().getResponse().get(i).getDirection());
+                        vectors.add(vector);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseGetVectors> call, Throwable t) {
 
             }
         });
