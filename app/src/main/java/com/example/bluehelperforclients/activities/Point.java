@@ -1,4 +1,4 @@
-package com.example.bluehelperforclients;
+package com.example.bluehelperforclients.activities;
 
 import java.util.HashMap;
 import java.util.Map;
