@@ -17,6 +17,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bluehelperforclients.R;
+import com.example.bluehelperforclients.activities.Point;
 import com.example.bluehelperforclients.interfaces.API;
 import com.example.bluehelperforclients.response_body.ResponseGetPoints;
 
@@ -240,7 +242,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_LOCATION_PERMISSION:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -349,9 +352,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
                         }
                         nearestBeaconInfo = beaconInfo;
-                        currentBeaconLabel.setText((beaconInfo.title != null) ? beaconInfo.title : beaconInfo.address);
-                        //currentBeaconLabel.setText(text);
-                        textconst = text;
+                        //currentBeaconLabel.setText((beaconInfo.title != null) ? beaconInfo.title : beaconInfo.address);
+                        currentBeaconLabel.setText(text);
+                        textconst=text;
                         currentBeaconLabel.setVisibility(View.VISIBLE);
                     }
                 } else if (nearestBeaconInfo == beaconInfo) {
