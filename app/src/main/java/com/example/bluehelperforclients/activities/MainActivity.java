@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             (nearestBeaconInfo == beaconInfo)) {
                         if ((nearestBeaconInfo != beaconInfo) && (beaconInfo.title != null) && canUseTTS) {
                             for (Map.Entry<String, String> item : pointsForCall.entrySet()) {
-                                if (beaconInfo.title.equals(item.getKey())) {
+                                if (beaconInfo.address.equals(item.getKey())) {
                                     text = item.getValue();
                                     System.out.println(text);
                                 }
@@ -352,7 +352,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
                         }
                         nearestBeaconInfo = beaconInfo;
+                        for (Map.Entry<String, String> item : pointsForCall.entrySet()) {
+                            if (beaconInfo.address.equals(item.getKey())) {
+                                text = item.getValue();
+                                System.out.println(text);
+                            }
+                        }
+                        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
                         //currentBeaconLabel.setText((beaconInfo.title != null) ? beaconInfo.title : beaconInfo.address);
+                        System.out.println(beaconInfo.address);
                         currentBeaconLabel.setText(text);
                         textconst=text;
                         currentBeaconLabel.setVisibility(View.VISIBLE);
